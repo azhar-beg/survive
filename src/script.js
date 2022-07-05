@@ -5,10 +5,14 @@ class Person {
   #id;
   #x;
   #y;
-  constructor(id, x, y) {
+  #width;
+  #height;
+  constructor(id, x, y, width, height) {
     this.#id = id;
     this.#x = x;
     this.#y = y;
+    this.#width = width;
+    this.#height = height;
   }
 
   movePerson(dx, dy) {
@@ -17,7 +21,7 @@ class Person {
   }
 
   getDetails() {
-    return { x: this.#x, y: this.#y, id: this.#id };
+    return { x: this.#x, y: this.#y, id: this.#id, width: this.#width, height: this.#height };
   }
 }
 
@@ -38,7 +42,7 @@ class Brick {
   }
 
   getDetails() {
-    return { x: this.#x, y: this.#y, id: this.#id };
+    return { x: this.#x, y: this.#y, id: this.#id, width: this.#width };
   }
 }
 
@@ -98,7 +102,7 @@ class Game {
   #bricks;
   #person;
   #view;
-  constructor(bricks, person, speed, view) {
+  constructor(bricks, person, view) {
     this.#bricks = bricks;
     this.#person = person;
     this.#view = view;
@@ -112,22 +116,24 @@ class Game {
   isPersonOnBrick() {
     return this.#bricks.some(brick => {
       const person = this.#person.getDetails();
-      const { x, y } = brick.getDetails();
-      return y === person.y + 25 && (person.x + 18 >= x && person.x <= (x + 25));
+      const { x, y, width } = brick.getDetails();
+      return y === person.y + person.height &&
+        (person.x + person.width >= x && person.x <= (x + width));
     })
   }
 
-  personDetails() {
-    return this.#person.getDetails();
-  };
-
   updatePerson(dx, dy, present) {
     this.#person.movePerson(dx, dy);
+    if (!this.#isPersonInView()) {
+      this.#person.movePerson(-dx, -dy);
+      return;
+    }
     present(this.#person);
   }
 
-  isPersonInScreen() {
-
+  #isPersonInView() {
+    const { x, width } = this.#person.getDetails();
+    return (x >= this.#view.x && x + width <= this.#view.width);
   }
 }
 
@@ -140,6 +146,9 @@ const updatePosition = person => {
 
 function movePerson(game) {
   return (event) => {
+    if (game.isOver()) {
+      return;
+    }
     if (event.key == 'ArrowLeft') {
       game.updatePerson(-3, 0, updatePosition);
     }
@@ -152,7 +161,7 @@ function movePerson(game) {
 const main = () => {
   const view = { x: 0, y: 0, height: 352, width: 180 };
   const brick = new Brick(1, 12, 350);
-  const person = new Person('person', 30, 325);
+  const person = new Person('person', 30, 325, 18, 25);
   const bricks = [brick];
   const game = new Game(bricks, person, view);
   drawBrick(brick);
@@ -168,9 +177,8 @@ const main = () => {
     counter++;
 
     if (game.isPersonOnBrick()) {
-      person.movePerson(0, -speed);
-    } else { person.movePerson(0, speed) }
-    updatePosition(person)
+      game.updatePerson(0, -speed, updatePosition);
+    } else { game.updatePerson(0, speed, updatePosition) }
 
     moveBricks(bricks, speed);
     if (counter % 70 === 0) {
