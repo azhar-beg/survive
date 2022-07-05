@@ -117,8 +117,8 @@ class Game {
     return this.#bricks.some(brick => {
       const person = this.#person.getDetails();
       const { x, y, width } = brick.getDetails();
-      return y === person.y + person.height &&
-        (person.x + person.width >= x && person.x <= (x + width));
+      return (y <= person.y + person.height + 1 && y >= person.y + person.height - 1)
+        && (person.x + person.width >= x && person.x <= (x + width));
     })
   }
 
@@ -158,6 +158,11 @@ function movePerson(game) {
   };
 }
 
+const updateScore = score => {
+  const scoreElement = document.getElementById('score');
+  scoreElement.innerText = `Your Score: ${score}`
+};
+
 const main = () => {
   const view = { x: 0, y: 0, height: 352, width: 180 };
   const brick = new Brick(1, 12, 350);
@@ -166,7 +171,7 @@ const main = () => {
   const game = new Game(bricks, person, view);
   drawBrick(brick);
 
-  const speed = 1;
+  const speed = 1.5;
   let idCounter = 1;
   let counter = 0;
 
@@ -178,7 +183,7 @@ const main = () => {
 
     if (game.isPersonOnBrick()) {
       game.updatePerson(0, -speed, updatePosition);
-    } else { game.updatePerson(0, speed, updatePosition) }
+    } else { game.updatePerson(0, 1, updatePosition) }
 
     moveBricks(bricks, speed);
     if (counter % 70 === 0) {
@@ -186,6 +191,7 @@ const main = () => {
       addNewBrick(++idCounter, bricks, x, 348)
     }
     removeBricksOnEdge(bricks)
+    updateScore(idCounter);
   }, 20);
 
   document.addEventListener('keydown', movePerson(game));
