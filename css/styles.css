@@ -1,6 +1,6 @@
 .view {
-  height: 350px;
-  width: 250px;
+  height: 352px;
+  width: 180px;
   border: solid black;
   top: 0;
   left: 20;
@@ -16,7 +16,9 @@
 }
 
 .person {
-  top: 330;
-  left: 20;
-  position: relative;
+  width: 18px;
+  height: 25px;
+  top: 325;
+  left: 30;
+  position: absolute;
 }
